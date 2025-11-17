@@ -1,0 +1,28 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: upgrade all packages
+    yum:
+      name: '*'
+      state: latest
+
+  - name: install kernel-uek-devel
+    yum:
+      name: kernel-uek-devel
+      state: present
+
+  - name: reboot to the latest kernel
+    reboot:
+
+  # Guest additions are located as per guest_additions_path in 
+  # Packer's configuration file
+  - name: Mount guest additions ISO read-only
+    mount:
+      path: /mnt/
+      src: /home/vagrant/VBoxGuestAdditions.iso
+      fstype: iso9660
+      opts: ro
+      state: mounted
+
+  - name: execute guest additions
+    shell: /mnt/VBoxLinuxAdditions.run 
