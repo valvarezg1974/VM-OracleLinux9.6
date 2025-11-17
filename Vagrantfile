@@ -8,20 +8,15 @@
 ENV["LC_ALL"] = "es_ES.UTF-8"
 
 Vagrant.configure("2") do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
 
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "OL9"
-
-  # The url from where the 'config.vm.box' box will be fetched if it
-  # doesn't already exist on the user's system.
-  #config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/9.json"
+  config.vm.box = "valvarezg/OracleLinux9.6"
+  config.vm.boot_timeout=1200
+  config.vm.synced_folder "/mnt/c", "/vagrant", disabled: true
+  config.ssh.username = "vagrant"          # Default user
+  config.ssh.password="vagrant"
 
 #$default_network_interface = `ip route | awk '/^default/ {printf "%s", $5; exit 0}'`
-N = 2
+N = 1
   (1..N).each do |machine_id|
        config.vm.define "machine#{machine_id}" do |machine|
            machine.vm.hostname = "OracleLinux9-#{machine_id}"
@@ -63,8 +58,8 @@ N = 2
   # documentation for more information about their specific syntax and use.
    config.vm.provision "shell", inline: <<-SHELL
   	 mkdir -p /home/vagrant/.ssh
-	 echo "AAAAB3NzaC1yc2EAAAADAQABAAACAQDf7k0LL6YOHMSpxM2VYIQ3bx2XAq+kZJGriUHgQSVRhKG/TCBrOcpobw7ctk56yaRQpN9BrvWtwYWYes4tpPG9nBdP4gu4mQEEXITlUW9fkNkUQGftvtIZtwppIkSt/It8SHtVAxXelSLTJKOVpH7VO1vJYZe+Sv78rLADrArMeXkelVJs2JGpqFQY0YzGw+o70gxP1nSlqo5MS1wzS+Hq+hTo9m4IQzpU7fgEFYJmCzi6DX8LLpQZoqKCFyWD0fdMrtr7vEPFS17bKIdxJ1MkPNatOIYRmkH2SEOZAW+rHkxWxAxq+LD6zJMRM33hG9SLQ2J2R/1OWc1FWRFz+82JeDt1Lah4MqF6FJBrNntx0ekf+vdeQgIZZWUTvGFqte2KLYvVEX415OXHAjIM7DBM4ebdhE8PNj/fT8mh8iECpqpWIgQ06YWS/3MkVsIXUsyyeiBy7hLI1K1pdjNYXN1mIcna7MU6MxHoxBnrQft10RDJkFbYYoPfmPVOF+SZej6IH39eemhKa3kr5gQnXXVFpOugDDkfUejOgHgVrSVOMz6zPPSi9+be2GYY4L/7V9L5G4rP72sELwigbBs8YFDbecHpkPoSeKs0eUeYg0yRfbUzKum2jkxUuVbJY77lCfsOsPD4Ok/Z4I9JwqjX+TW8k837D2p6fbHLF2xsfcIuFw== plexus\victor.alvarezgonzal@PLX10749-002" > /home/vagrant/.ssh/authorized_keys
-	 chown -R vagrant:vagrant /home/vagrant/.ssh
-	 chmod 600 /home/vagrant/.ssh/authorized_keys
+	   echo "AAAAB3NzaC1yc2EAAAADAQABAAACAQDf7k0LL6YOHMSpxM2VYIQ3bx2XAq+kZJGriUHgQSVRhKG/TCBrOcpobw7ctk56yaRQpN9BrvWtwYWYes4tpPG9nBdP4gu4mQEEXITlUW9fkNkUQGftvtIZtwppIkSt/It8SHtVAxXelSLTJKOVpH7VO1vJYZe+Sv78rLADrArMeXkelVJs2JGpqFQY0YzGw+o70gxP1nSlqo5MS1wzS+Hq+hTo9m4IQzpU7fgEFYJmCzi6DX8LLpQZoqKCFyWD0fdMrtr7vEPFS17bKIdxJ1MkPNatOIYRmkH2SEOZAW+rHkxWxAxq+LD6zJMRM33hG9SLQ2J2R/1OWc1FWRFz+82JeDt1Lah4MqF6FJBrNntx0ekf+vdeQgIZZWUTvGFqte2KLYvVEX415OXHAjIM7DBM4ebdhE8PNj/fT8mh8iECpqpWIgQ06YWS/3MkVsIXUsyyeiBy7hLI1K1pdjNYXN1mIcna7MU6MxHoxBnrQft10RDJkFbYYoPfmPVOF+SZej6IH39eemhKa3kr5gQnXXVFpOugDDkfUejOgHgVrSVOMz6zPPSi9+be2GYY4L/7V9L5G4rP72sELwigbBs8YFDbecHpkPoSeKs0eUeYg0yRfbUzKum2jkxUuVbJY77lCfsOsPD4Ok/Z4I9JwqjX+TW8k837D2p6fbHLF2xsfcIuFw== plexus\victor.alvarezgonzal@PLX10749-002" > /home/vagrant/.ssh/authorized_keys
+	   chown -R vagrant:vagrant /home/vagrant/.ssh
+	   chmod 600 /home/vagrant/.ssh/authorized_keys
    SHELL
 end
