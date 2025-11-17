@@ -1,0 +1,1 @@
+ssh -i C:\Users\victor.alvarezgonzal/.ssh/id_rsa vagrant@127.0.0.1 -p2222
