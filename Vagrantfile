@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "valvarezg/OracleLinux9.6"
   config.vm.boot_timeout=1200
   config.vm.synced_folder "/mnt/c", "/vagrant", disabled: true
-  config.ssh.username = "vagrant"          # Default user
+  config.ssh.username = "root"          # Default user
   config.ssh.password="vagrant"
 
 #$default_network_interface = `ip route | awk '/^default/ {printf "%s", $5; exit 0}'`
