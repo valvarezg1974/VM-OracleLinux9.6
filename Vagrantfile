@@ -1,50 +1,51 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
 ENV["LC_ALL"] = "es_ES.UTF-8"
 
 Vagrant.configure("2") do |config|
-
+  
   config.vm.box = "valvarezg/OracleLinux9.6"
+  config.ssh.insert_key=false
+  config.ssh.forward_agent = true
   config.vm.boot_timeout=1200
-  config.vm.synced_folder "/mnt/c", "/vagrant", disabled: false
-  config.ssh.username = "vagrant"          # Default user
-  config.ssh.password="vagrant"
+  config.vm.synced_folder "/mnt/c", "/vagrant", disabled: true
+  #config.ssh.username = "vagrant"          # Default user
+  #config.ssh.password="vagrant"
 
 #$default_network_interface = `ip route | awk '/^default/ {printf "%s", $5; exit 0}'`
+
 N = 1
   (1..N).each do |machine_id|
        config.vm.define "machine#{machine_id}" do |machine|
-           machine.vm.hostname = "OracleLinux9-#{machine_id}"
-           machine.vm.network "private_network", ip: "192.168.56.#{200+machine_id}"
-           machine.vm.network "public_network", bridge: "Intel PRO/1000 MT Desktop (82540EM)"
-	
-		   machine.vm.provider "virtualbox" do |vb|
-			  vb.name = "OracleLinux9-#{machine_id}"
-			  vb.memory = "1024"
-			  vb.cpus = 1
-			  #Creacion de discos
-			  if machine_id==1
+          machine.vm.hostname = "OracleLinux9-#{machine_id}"
+          machine.vm.network "private_network", ip: "192.168.56.#{200+machine_id}"
+          machine.vm.network "public_network", bridge: "Realtek 8852CE WiFi 6E PCI-E NIC"
+	        #machine.vm.network "public_network", bridge: "#{$default_network_interface}"  
+		   
+          machine.vm.provider "virtualbox" do |vb|
+			      vb.name = "OracleLinux9-#{machine_id}"
+			      vb.memory = "1024"
+			      vb.cpus = 1
+			    #Creacion de discos
+			    if machine_id==1
 		         unless File.exist?('./secondDisk.vdi')
-                   vb.customize ['createhd', '--filename', './secondDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
-                 end
-                 unless File.exist?('./thirdDisk.vdi')
-                   vb.customize ['createhd', '--filename', './thirdDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
-                 end
-
+                vb.customize ['createhd', '--filename', './secondDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
+                vb.customize ["modifymedium","./secondDisk.vdi","--type","shareable"]
+             end
+             unless File.exist?('./thirdDisk.vdi')
+                vb.customize ['createhd', '--filename', './thirdDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
+                vb.customize ["modifymedium","./thirdDisk.vdi","--type","shareable"]
+          end
+          
 			    vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './secondDisk.vdi']
-                vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', './thirdDisk.vdi']
-              end  
-		      #config.vm.provision "shell", privileged: false, path: "./scripts/base.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/virtualbox.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/vagrant.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/provision.sh"
+          vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', './thirdDisk.vdi']
+          
+        end
+         
+        #config.vm.provision "shell", privileged: false, path: "./scripts/base.sh"
 			  #config.vm.provision "shell", privileged: false, path: "./scripts/cleanup.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/zerodisk.sh"
+			  config.vm.provision "shell", privileged: false, path: "./scripts/zerodisk.sh"
 		   end
 		end 
     end
