@@ -16,16 +16,16 @@ Vagrant.configure("2") do |config|
   config.ssh.password="vagrant"
 
 #$default_network_interface = `ip route | awk '/^default/ {printf "%s", $5; exit 0}'`
-N = 2
+N = 1
   (1..N).each do |machine_id|
        config.vm.define "machine#{machine_id}" do |machine|
            machine.vm.hostname = "OracleLinux9-#{machine_id}"
            machine.vm.network "private_network", ip: "192.168.56.#{200+machine_id}"
-          # machine.vm.network "public_network", bridge: "Intel PRO/1000 MT Desktop (82540EM)"
+           machine.vm.network "public_network", bridge: "Intel PRO/1000 MT Desktop (82540EM)"
 	
 		   machine.vm.provider "virtualbox" do |vb|
 			  vb.name = "OracleLinux9-#{machine_id}"
-			  vb.memory = "2048"
+			  vb.memory = "1024"
 			  vb.cpus = 1
 			  #Creacion de discos
 			  if machine_id==1
