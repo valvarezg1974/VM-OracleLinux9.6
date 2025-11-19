@@ -1,3 +1,3 @@
-sudo dd if=/dev/zero of=/EMPTY count=100 bs=1M
+sudo dd if=/dev/zero of=/EMPTY bs=100M status=progress
 sudo rm -f /EMPTY
 

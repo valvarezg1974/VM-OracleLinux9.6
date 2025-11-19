@@ -20,13 +20,13 @@ N = 1
        config.vm.define "machine#{machine_id}" do |machine|
           machine.vm.hostname = "OracleLinux9-#{machine_id}"
           machine.vm.network "private_network", ip: "192.168.56.#{200+machine_id}"
-          machine.vm.network "public_network", bridge: "Realtek 8852CE WiFi 6E PCI-E NIC"
-	        #machine.vm.network "public_network", bridge: "#{$default_network_interface}"  
+          #machine.vm.network "public_network", bridge: "Realtek 8852CE WiFi 6E PCI-E NIC" 
 		   
           machine.vm.provider "virtualbox" do |vb|
 			      vb.name = "OracleLinux9-#{machine_id}"
 			      vb.memory = "1024"
 			      vb.cpus = 1
+
 			    #Creacion de discos
 			    if machine_id==1
 		         unless File.exist?('./secondDisk.vdi')
@@ -42,10 +42,26 @@ N = 1
           vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', './thirdDisk.vdi']
           
         end
-         
+                    
+        config.vm.provision "shell", inline: "echo 'Provisioning VM ...'"	
+            public_key = File.read("/home/victor/.ssh/id_rsa.pub")
+           config.vm.provision :shell, :inline =>"
+           echo 'Copying ansible-vm public SSH Keys to the VM'
+           mkdir -p /home/vagrant/.ssh
+           chmod 700 /home/vagrant/.ssh
+           echo '#{public_key}' >> /home/vagrant/.ssh/authorized_keys     
+           chmod -R 600 /home/vagrant/.ssh/authorized_keys
+           echo 'Host 192.168.*.*' >> /home/vagrant/.ssh/config
+           echo 'StrictHostKeyChecking ask' >> /home/vagrant/.ssh/config
+           echo 'UserKnownHostsFile /dev/null' >> /home/vagrant/.ssh/config
+           chmod -R 600 /home/vagrant/.ssh/config
+          ", privileged: false
+   
+        config.vm.provision "shell", inline: "echo 'End Provisioning VM ...'"	
+
         #config.vm.provision "shell", privileged: false, path: "./scripts/base.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/cleanup.sh"
-			  config.vm.provision "shell", privileged: false, path: "./scripts/zerodisk.sh"
+			  config.vm.provision "shell", privileged: false, path: "./scripts/cleanup.sh"
+			  #config.vm.provision "shell", privileged: false, path: "./scripts/zerodisk.sh"
 		   end
 		end 
     end
