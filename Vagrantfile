@@ -15,68 +15,50 @@ Vagrant.configure("2") do |config|
 
 #$default_network_interface = `ip route | awk '/^default/ {printf "%s", $5; exit 0}'`
 
-N = 1
+N = 2
   (1..N).each do |machine_id|
        config.vm.define "machine#{machine_id}" do |machine|
-          machine.vm.hostname = "OracleLinux9-#{machine_id}"
-          machine.vm.network "private_network", ip: "192.168.56.#{200+machine_id}"
-          #machine.vm.network "public_network", bridge: "Realtek 8852CE WiFi 6E PCI-E NIC" 
-		   
-          machine.vm.provider "virtualbox" do |vb|
-			      vb.name = "OracleLinux9-#{machine_id}"
-			      vb.memory = "1024"
-			      vb.cpus = 1
+         machine.vm.hostname = "host0#{machine_id}"
+         machine.vm.network "private_network", ip: "192.168.2.#{100+machine_id}", virtualbox__intnet: "PrivateNetwork"
+         machine.vm.network "private_network", ip: "192.168.3.#{200+machine_id}", virtualbox__intnet: "PrivateNetwork"
+         machine.vm.network "public_network", bridge: "Realtek 8852CE WiFi 6E PCI-E NIC" 
+		     #config.vm.network "private_network",ip: "192.168.56.20",virtualbox__hostonly: "vboxnet0" --host-only
 
-			    #Creacion de discos
-			    if machine_id==1
-		         unless File.exist?('./secondDisk.vdi')
-                vb.customize ['createhd', '--filename', './secondDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
-                vb.customize ["modifymedium","./secondDisk.vdi","--type","shareable"]
+         machine.vm.provider "virtualbox" do |vb|
+			     vb.name = "OracleLinux9-#{machine_id}"
+			     vb.memory = "2048"
+			     vb.cpus = 2
+
+           # Define disks to create and attach
+           disks = [
+             { size: 1024, name: "disk11.vdi" }, # 1GB
+             { size: 1024, name: "disk12.vdi" }, # 1GB
+             { size: 1024, name: "disk13.vdi" }, # 1GB
+             { size: 1024, name: "disk14.vdi" }, # 1GB
+             { size: 1024, name: "disk15.vdi" }, # 1GB
+             { size: 1024, name: "disk16.vdi" }  # 1GB
+           ]
+
+           # Using SATA controller here, change 'SATA' if you prefer 'IDE'
+           vb.customize ["storagectl",:id,"--name","SATA","--add","sata","--portcount","6"] 
+
+             # Loop through disks to create and attach
+             disks.each_with_index do |disk, index|
+             # Use a unique port for each disk (e.g., 1, 2, 3, 4 for IDE/SATA)
+             port_num = index + 1
+
+            if machine_id==1 
+             # Create the disk image if it doesn't exist
+             unless File.exist?(disk[:name])
+               vb.customize ["createhd", "--filename", disk[:name], "--size", disk[:size], "--variant", "Fixed"]
+               vb.customize ["modifymedium",disk[:name],"--type","shareable"]
              end
-             unless File.exist?('./thirdDisk.vdi')
-                vb.customize ['createhd', '--filename', './thirdDisk.vdi', '--variant', 'Fixed', '--size', 2 * 1024]
-                vb.customize ["modifymedium","./thirdDisk.vdi","--type","shareable"]
-          end
-          
-			    vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './secondDisk.vdi']
-          vb.customize ['storageattach', :id,  '--storagectl', 'IDE Controller', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', './thirdDisk.vdi']
-          
+            end
+
+             # Attach the disk to the VM
+             vb.customize ["storageattach", :id, "--storagectl", "SATA", "--port", port_num, "--device", 0, "--type", "hdd", "--medium", disk[:name]]
+           end
         end
-                    
-        config.vm.provision "shell", inline: "echo 'Provisioning VM ...'"	
-            public_key = File.read("/home/victor/.ssh/id_rsa.pub")
-           config.vm.provision :shell, :inline =>"
-           echo 'Copying ansible-vm public SSH Keys to the VM'
-           mkdir -p /home/vagrant/.ssh
-           chmod 700 /home/vagrant/.ssh
-           echo '#{public_key}' >> /home/vagrant/.ssh/authorized_keys     
-           chmod -R 600 /home/vagrant/.ssh/authorized_keys
-           echo 'Host 192.168.*.*' >> /home/vagrant/.ssh/config
-           echo 'StrictHostKeyChecking ask' >> /home/vagrant/.ssh/config
-           echo 'UserKnownHostsFile /dev/null' >> /home/vagrant/.ssh/config
-           chmod -R 600 /home/vagrant/.ssh/config
-          ", privileged: false
-   
-        config.vm.provision "shell", inline: "echo 'End Provisioning VM ...'"	
-
-        #config.vm.provision "shell", privileged: false, path: "./scripts/base.sh"
-			  config.vm.provision "shell", privileged: false, path: "./scripts/cleanup.sh"
-			  #config.vm.provision "shell", privileged: false, path: "./scripts/zerodisk.sh"
-		   end
-		end 
+      end
     end
-	  
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-   #config.vm.provision "shell", inline: <<-SHELL
-  #	 mkdir -p /home/vagrant/.ssh
-	#   echo "AAAAB3NzaC1yc2EAAAADAQABAAACAQDf7k0LL6YOHMSpxM2VYIQ3bx2XAq+kZJGriUHgQSVRhKG/TCBrOcpobw7ctk56yaRQpN9BrvWtwYWYes4tpPG9nBdP4gu4mQEEXITlUW9fkNkUQGftvtIZtwppIkSt/It8SHtVAxXelSLTJKOVpH7VO1vJYZe+Sv78rLADrArMeXkelVJs2JGpqFQY0YzGw+o70gxP1nSlqo5MS1wzS+Hq+hTo9m4IQzpU7fgEFYJmCzi6DX8LLpQZoqKCFyWD0fdMrtr7vEPFS17bKIdxJ1MkPNatOIYRmkH2SEOZAW+rHkxWxAxq+LD6zJMRM33hG9SLQ2J2R/1OWc1FWRFz+82JeDt1Lah4MqF6FJBrNntx0ekf+vdeQgIZZWUTvGFqte2KLYvVEX415OXHAjIM7DBM4ebdhE8PNj/fT8mh8iECpqpWIgQ06YWS/3MkVsIXUsyyeiBy7hLI1K1pdjNYXN1mIcna7MU6MxHoxBnrQft10RDJkFbYYoPfmPVOF+SZej6IH39eemhKa3kr5gQnXXVFpOugDDkfUejOgHgVrSVOMz6zPPSi9+be2GYY4L/7V9L5G4rP72sELwigbBs8YFDbecHpkPoSeKs0eUeYg0yRfbUzKum2jkxUuVbJY77lCfsOsPD4Ok/Z4I9JwqjX+TW8k837D2p6fbHLF2xsfcIuFw== plexus\victor.alvarezgonzal@PLX10749-002" > /home/vagrant/.ssh/authorized_keys
-	#   chown -R vagrant:vagrant /home/vagrant/.ssh
-	#   chmod 600 /home/vagrant/.ssh/authorized_keys
-  # SHELL
-end
+  end
