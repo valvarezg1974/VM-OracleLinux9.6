@@ -75,6 +75,7 @@ N = 2
      mkdir -p /u02/oradata
      chown -R oracle:oinstall /u01 /u02
      chmod -R 775 /u01 /u02
+     unzip /software/LINUX.X64_193000_db_home.zip -d /u01/app/oracle/product/19.0.0/dbhome_1/
      setenforce Permissive
      systemctl stop firewalld
      systemctl disable firewalld
